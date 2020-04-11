@@ -19,16 +19,19 @@
 namespace {
 
 
-void printToBuffer(const char* contents) {
+void printToBuffer(const char* contents, uint32_t size) {
   static char tmpMsgBuffer[1024];
 
   sprintf(tmpMsgBuffer, "%s\n", contents);
+  tmpMsgBuffer[size] = 0;
+
   dbgio_buffer(tmpMsgBuffer);
 }
 
 void printFileContents(const char* filename) {
   File handle = Filesystem::open(filename);
-  printToBuffer(static_cast<const char*>(handle.getData()));
+  printToBuffer(static_cast<const char*>(handle.getData()), 
+    handle.size());
 }
 
 void hardwareInit() {
@@ -48,6 +51,22 @@ void hardwareInit() {
 
 
 } // namespace ''
+
+
+void _assert(const char *file, const char *line, const char *func, 
+  const char *expression) {
+
+  char tmpBuffer[1024];
+  sprintf(tmpBuffer, "Assertion failed at %s:%s (%s)\n", file, line, 
+    expression);
+
+  dbgio_buffer(tmpBuffer);
+  dbgio_flush();
+  vdp_sync(0);
+
+  while (true) 
+    ;
+}
 
 
 int main(void) {
